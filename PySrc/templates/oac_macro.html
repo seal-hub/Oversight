@@ -1,0 +1,227 @@
+{% macro oac_row(address_book, oac_name, with_snapshot_info) %}
+    <tr>
+        <th scope="row" style="max-width: 5em" class="overflow-auto">
+            <ul>
+                {% if oac_name == 'oacs' %}
+                    <li>Name: All</li>
+                {% else %}
+                    <li>Name: {{ oac_name }}</li>
+                {% endif %}
+                {% if with_snapshot_info %}
+                    <li>Oversight:
+                        <a
+                                href="{{ url_for('report_v2',
+                                        result_path=address_book.result_path(),
+                                        app_name=address_book.app_name(),
+                                        snapshot_name=address_book.snapshot_name()) }}">
+                            {{ address_book.snapshot_name() }}
+                        </a>
+                    </li>
+                    <li>App: <a href="{{ url_for('report_app_v2',
+                                        result_path=address_book.result_path(),
+                                        app_name=address_book.app_name()) }}">
+                        {{ address_book.app_name() }}
+                    </a>
+                    </li>
+                    <li>
+                        <a class="btn btn-info copyer">
+                            Copy Path
+                            <input type="hidden" class="text-to-copy"
+                                   value="{{ address_book.result_path() }}/{{ address_book.app_name() }}/{{ address_book.snapshot_name() }}">
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </th>
+        <td style="max-width: 15em">
+            <a href="#" class="enlarge">
+                <img src="{{ url_for('send_result_static_v2', path=static_path_fixer(address_book.get_os_result_path(oac_name, extension='png'), result_path)) }}"
+                     class="rounded d-block mx-auto"
+                     style="width: 10rem;">
+            </a>
+            <hr>
+            Count: {{ address_book.get_oacs(oac_name) | length }}
+            <a href="{{ url_for('send_result_static_v2', path=static_path_fixer(address_book.get_os_result_path(oac_name, extension='jsonl'), result_path)) }}">
+                Details
+            </a>
+        </td>
+        <td>
+            <div class="row m-4">
+                <div class="row">
+                    <div class="col-8">
+                        <input type="text" class="oac-tag-value form-control">
+                    </div>
+                    <div class="col-4">
+                        <button class="oac_tag btn btn-secondary">
+                            Add Tag
+                            <input type="hidden" class="snapshot-result-path" value="{{ address_book.result_path() }}">
+                            <input type="hidden" class="snapshot-app" value="{{ address_book.app_name() }}">
+                            <input type="hidden" class="snapshot-name" value="{{ address_book.snapshot_name() }}">
+                            <input type="hidden" class="snapshot-oac" value="{{ oac_name }}">
+                            <input type="hidden" class="snapshot-index" value="-1">
+                        </button>
+                    </div>
+                </div>
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Text</th>
+                        <th scope="col">ContentD</th>
+                        <th scope="col">Clickable</th>
+                        <th scope="col">Enabled</th>
+                        <th scope="col">Visible</th>
+                        <th scope="col">Bounds</th>
+                        <th scope="col">TB Reachable</th>
+                        <th scope="col">TB Actionable</th>
+                        <th scope="col">API Actionable</th>
+                        <th scope="col">Tags</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for node, info in address_book.get_oacs_with_info(oac_name).items() %}
+                        {% set oac_loop = loop %}
+                        <tr>
+                            <td>{{ oac_loop.index }}</td>
+                            <td class="text-truncate" style="max-width: 10em">{{ node.text }}</td>
+                            <td>{{ node.content_desc }}</td>
+                            <td>{{ node.clickable }}</td>
+                            <td>{{ node.enabled }}</td>
+                            <td>{{ node.visible }}</td>
+                            <td>{{ node.bounds }}</td>
+                            <td>
+                                {% if node.potentially_data() or node.potentially_function() %}
+                                    {% if info.tbr != None %}
+                                        {{ info.tbr.bounds }}
+                                    {% else %}
+                                        False
+                                    {% endif %}
+
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if node.potentially_function() %}
+                                    {{ info.tba != None }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if node.potentially_function() %}
+                                    {{ info.apia != None }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if oac_name != 'oacs' %}
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <input type="text" class="oac-tag-value form-control">
+                                        </div>
+                                        <div class="col-4">
+                                            <button class="oac_tag btn btn-secondary">
+                                                Add Tag
+                                                <input type="hidden" class="snapshot-result-path" value="{{ address_book.result_path() }}">
+                                                <input type="hidden" class="snapshot-app" value="{{ address_book.app_name() }}">
+                                                <input type="hidden" class="snapshot-name" value="{{ address_book.snapshot_name() }}">
+                                                <input type="hidden" class="snapshot-oac" value="{{ oac_name }}">
+                                                <input type="hidden" class="snapshot-index" value="{{ oac_loop.index0 }}">
+                                            </button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div class="m-3" >
+                                    Tags:
+                                    <div class="tag-container" style="display: block; overflow-x: auto; white-space:nowrap ">
+                                        {% for tag in info.tags %}
+                                            <span class="btn btn-light rounded-pill m-1" style="display: inline-block;">
+                                                {{ tag }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% if oac_name != 'oacs' %}
+                                    <div class="row">
+                                        {% for tag, name in { 'tbrt': 'TBR T',
+                                        'tbrf': 'TBR F',
+                                        'tp': 'Smell TP',
+                                        'fp': 'Smell FP'}.items() %}
+                                            {% if tag not in info.tags %}
+
+                                                    <div class="col-3">
+                                                        <div>
+                                                            <button class="oac_tag btn btn-outline-primary">
+                                                                {{ name }}
+                                                                <input type="hidden" class="snapshot-result-path" value="{{ address_book.result_path() }}">
+                                                                <input type="hidden" class="snapshot-app" value="{{ address_book.app_name() }}">
+                                                                <input type="hidden" class="snapshot-name" value="{{ address_book.snapshot_name() }}">
+                                                                <input type="hidden" class="snapshot-oac" value="{{ oac_name }}">
+                                                                <input type="hidden" class="snapshot-index" value="{{ oac_loop.index0 }}">
+                                                            </button>
+                                                        </div>
+                                                        <div>
+                                                            <input type="hidden" class="oac-tag-value form-control" value="{{ tag }}">
+                                                        </div>
+                                                    </div>
+
+
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+{% endmacro %}
+{% macro oac_tag_script() %}
+    <script>
+        $('.oac_tag').on('click', function () {
+            let result_path = $(this).find('.snapshot-result-path').attr('value');
+            let app_name = $(this).find('.snapshot-app').attr('value');
+            let snapshot_name = $(this).find('.snapshot-name').attr('value');
+            let oac = $(this).find('.snapshot-oac').attr('value');
+            let index = $(this).find('.snapshot-index').attr('value');
+            let tag_input_element = $(this).parent().parent().find('.oac-tag-value');
+            let tag = tag_input_element.val();
+            let tag_container_element = $(this).parent().parent().parent().parent().find('.tag-container');
+            if (tag) {
+                {#let path = "/v2/"+ result_path +"/app/"+ app_name + "/post_analysis";#}
+                let host_url = window.location.href.split("/v2/")[0]
+                let path = `${host_url}/v2/${result_path}/app/${app_name}/snapshot/${snapshot_name}/oac/${oac}/${index}/tag/${tag}`
+                $.getJSON(path, {},
+                    function(data) {
+                        if (data.result) {
+                            for(var t of tag.split(',')) {
+                                new_tag = `<span class="btn btn-light rounded-pill m-1" style="display: inline-block;">
+                                            ${t}
+                                        </span>`
+                                console.log("The tag container")
+                                console.log(tag_container_element)
+                                console.log("The new element: " + new_tag)
+                                tag_container_element.append(new_tag)
+                                tag_input_element.val("");
+                            }
+                        }
+                        else{
+                            alert("There is a problem with tagging!")
+                        }
+                    });
+            }
+            else
+            {
+                alert("Empty tag");
+            }
+        });
+    </script>
+{% endmacro %}

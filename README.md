@@ -60,3 +60,8 @@ You can interact with Oversight by sending commands to its Broadcast Receiver or
 	- `init`: Initializes a use case, the use case speicfication is provided in extra.
 	- `start`: Starts the use case (`init` must be called beforehand)
 	- `stop`: Stops the current use case execution
+
+## Additional artifacts
+- [Examples](https://drive.google.com/file/d/1EtH5Ou98iA027w4MuuPlQunms4snGmZn/view?usp=sharing)
+- [Visualizer](https://drive.google.com/file/d/1-ACFgLnSEEhsPSITbITIPSOasm4eWtLx/view?usp=sharing)
+- [Test set](https://docs.google.com/spreadsheets/d/1vUYE1D6dctMAVtshDctvS4rPpLTryOPgG66OgEF8rrw/edit#gid=0)
